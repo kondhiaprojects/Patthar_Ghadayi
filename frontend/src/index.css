@@ -656,6 +656,19 @@ input, textarea, select { font-family: inherit; }
 }
 .pdf-download-btn:hover { color: var(--dark-green); }
 
+/* View PDF button — same look as the old <a> link it replaces */
+.pdf-view-btn {
+  font-size: 13px;
+  color: var(--green);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.pdf-view-btn:hover { color: var(--dark-green); }
+
 /* ── EXTERNAL REF LINK ── */
 .ext-ref-link {
   font-size: 14px;

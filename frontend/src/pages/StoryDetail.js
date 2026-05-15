@@ -11,22 +11,52 @@ function linkify(text) {
   );
 }
 
-// Force PDF download with correct filename
+// ── PDF Helpers ────────────────────────────────────────────────────────────
+//
+// ROOT CAUSE: Cloudinary uploads PDFs as resource_type:'raw', which makes
+// Cloudinary add a Content-Disposition:attachment header on every response.
+// The browser obeys that header and downloads instead of rendering — even
+// when target="_blank" is set on the <a> tag.
+//
+// FIX for View  → route the URL through Google Docs Viewer, which fetches
+//                 the file server-side and renders it regardless of headers.
+// FIX for Download → fetch the bytes, re-type the blob as application/pdf,
+//                    and trigger a named download via a temporary <a> tag.
+
+// Open PDF in Google Docs Viewer (opens in a new tab, no CORS issues)
+function viewPdf(url) {
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`;
+  window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+}
+
+// Force-download the PDF with the correct filename
 async function downloadPdf(url, filename) {
+  const safeFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
+    // Re-type the blob so the browser saves it as a proper PDF regardless
+    // of whatever Content-Type Cloudinary sent in the response.
     const objectUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
     const link = document.createElement('a');
     link.href = objectUrl;
-    link.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+    link.download = safeFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(objectUrl);
+    // Delay revoke so the browser has time to start the download
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
   } catch {
-    // Fallback: open directly
-    window.open(url, '_blank');
+    // Fallback: let the browser handle it directly (will likely still download)
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeFilename;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
 
@@ -121,7 +151,7 @@ export default function StoryDetail() {
           </div>
         )}
 
-        {/* PDFs — View opens new tab, Download forces .pdf */}
+        {/* PDFs — View opens Google Docs Viewer in new tab; Download forces .pdf save */}
         {story.pdfs?.length > 0 && (
           <div className="story-media-section">
             <h3>Attachments</h3>
@@ -130,11 +160,13 @@ export default function StoryDetail() {
                 <span className="pdf-item-icon">📄</span>
                 <span className="pdf-item-name">{pdf.displayName}</span>
                 <div className="pdf-item-links">
-                  <a
-                    href={pdf.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >View PDF</a>
+                  {/* viewPdf() routes through Google Docs Viewer so the
+                      Cloudinary Content-Disposition:attachment header is
+                      bypassed and the PDF renders in-browser */}
+                  <button
+                    className="pdf-view-btn"
+                    onClick={() => viewPdf(pdf.url)}
+                  >View PDF</button>
                   <button
                     className="pdf-download-btn"
                     onClick={() => downloadPdf(pdf.url, pdf.displayName)}
