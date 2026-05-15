@@ -4,7 +4,6 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// ── helper: strip html tags for excerpt ──
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, '').slice(0, 120);
 
 export default function Home() {
@@ -35,13 +34,11 @@ export default function Home() {
     <div>
       <Navbar />
 
-      {/* ── Hero / Image with Stats ── */}
-      <div className="hero-placeholder">
-        {/* Replace this div's content with your own image */}
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 15, marginBottom: 16 }}>📷 Hero image — update the URL below</p>
-          {/* <img src="YOUR_IMAGE_URL_HERE" alt="hero" style={{width:'100%',height:'220px',objectFit:'cover'}} /> */}
-          <div className="hero-stats" style={{ marginTop: 0 }}>
+      {/* ── Hero Image ── */}
+      <div className="hero-img-wrap">
+        <img src="/hero.jpg" alt="Patthar Ghadayi Majdoor Sangh" className="hero-img" />
+        <div className="hero-overlay">
+          <div className="hero-stats">
             <div className="hero-stat">
               <div className="hero-stat-num">{stats.total}+</div>
               <div className="hero-stat-label">Stories Shared</div>
@@ -61,18 +58,16 @@ export default function Home() {
       {/* ── About ── */}
       <div className="about-section">
         <h2>About</h2>
-        {/* ⬇️  Replace this placeholder text with your own content */}
         <p>
-          StoryVault is a private community platform where members share their real-world
-          experiences — from travel adventures and career milestones to personal reflections
-          and everyday discoveries. Anyone can read; only registered members can write.
-          Update this text in <code>src/pages/Home.js</code>.
+          Patthar Ghadayi Majdoor Sangh is a community platform where members share their real-world
+          experiences — from work life and labour struggles to personal reflections and everyday discoveries.
+          Anyone can read; only registered members can write.
         </p>
       </div>
 
       {/* ── Your Stories ── */}
       <div className="stories-section">
-        <h2>Your Stories</h2>
+        <h2>Latest Stories</h2>
 
         {loading ? (
           <div className="loading">Loading stories…</div>
@@ -87,8 +82,12 @@ export default function Home() {
                 onClick={() => navigate(`/stories/${s._id}`)}
               >
                 <div className="story-card-img">
-                  {s.images?.[0]?.url ? (
-                    <img src={s.images[0].url} alt={s.images[0].altText || s.title} />
+                  {/* Use thumbnailImage first, fall back to first story image */}
+                  {(s.thumbnailImage?.url || s.images?.[0]?.url) ? (
+                    <img
+                      src={s.thumbnailImage?.url || s.images[0].url}
+                      alt={s.title}
+                    />
                   ) : (
                     <div className="story-card-img-placeholder">Photo</div>
                   )}

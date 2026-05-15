@@ -18,7 +18,7 @@ const storySchema = new mongoose.Schema({
     required: [true, 'Story body is required'],
   },
   bodyHash: {
-    type: String, // SHA-256 of body at publish time — tamper detection
+    type: String,
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,12 +35,21 @@ const storySchema = new mongoose.Schema({
     default: [],
     validate: [arr => arr.length <= 10, 'Maximum 10 tags allowed'],
   },
+
+  // ── Thumbnail / Profile picture for the story ──
+  thumbnailImage: {
+    fileKey:     { type: String, default: '' },
+    displayName: { type: String, default: '' },
+    url:         { type: String, default: '' },
+    altText:     { type: String, default: '' },
+  },
+
   // Media
   images: [{
-    fileKey:     { type: String },  // UUID filename on disk
+    fileKey:     { type: String },
     displayName: { type: String },
     altText:     { type: String, default: '' },
-    url:         { type: String },  // served URL
+    url:         { type: String },
   }],
   videos: [{
     fileKey:      { type: String },
@@ -66,7 +75,6 @@ const storySchema = new mongoose.Schema({
   contentVersion: { type: Number, default: 1 },
   publishedAt:    { type: Date, default: null },
 
-  // Edit history stored as sub-docs
   editHistory: [{
     editorId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     bodySnapshot:{ type: String },
@@ -75,12 +83,10 @@ const storySchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
-// Compute SHA-256 hash of body
 storySchema.methods.computeBodyHash = function () {
   return crypto.createHash('sha256').update(this.body).digest('hex');
 };
 
-// Text index for full-text search
 storySchema.index({ title: 'text', body: 'text', tags: 'text' });
 
 module.exports = mongoose.model('Story', storySchema);

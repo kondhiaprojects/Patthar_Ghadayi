@@ -77,7 +77,7 @@ export default function Stories() {
               >
                 <div className="story-list-thumb">
                   {s.images?.[0]?.url ? (
-                    <img src={s.images[0].url} alt={s.title} />
+                    <img src={s.thumbnailImage?.url || s.images[0].url} alt={s.title} />
                   ) : (
                     <div className="story-list-thumb-placeholder">No image</div>
                   )}

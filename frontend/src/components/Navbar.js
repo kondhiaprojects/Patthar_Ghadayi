@@ -15,7 +15,10 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-logo">Website</Link>
+      <Link to="/" className="navbar-logo">
+        <img src="/logo.png" alt="Patthar Ghadayi Majdoor Sangh Logo" className="navbar-logo-img" />
+        <span>Patthar Ghadayi Majdoor Sangh</span>
+      </Link>
 
       <div className="navbar-links">
         <Link to="/about">About</Link>

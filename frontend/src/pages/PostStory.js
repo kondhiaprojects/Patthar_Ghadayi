@@ -9,22 +9,24 @@ export default function PostStory() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [title, setTitle]       = useState('');
-  const [body, setBody]         = useState('');
-  const [tags, setTags]         = useState('');
-  const [images, setImages]     = useState([]);   // [{fileKey, displayName, url, altText}]
-  const [videos, setVideos]     = useState([]);   // [{fileKey, displayName, url, ...}]
-  const [pdfs, setPdfs]         = useState([]);   // [{fileKey, displayName, url, ...}]
-  const [extRefs, setExtRefs]   = useState([{ label: '', url: '' }]);
-  const [uploading, setUploading] = useState({ image: false, video: false, pdf: false });
-  const [saving, setSaving]     = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [error, setError]       = useState('');
-  const [success, setSuccess]   = useState('');
+  const [title, setTitle]               = useState('');
+  const [body, setBody]                 = useState('');
+  const [tags, setTags]                 = useState('');
+  const [thumbnailImage, setThumbnailImage] = useState(null); // {fileKey, displayName, url, altText}
+  const [images, setImages]             = useState([]);
+  const [videos, setVideos]             = useState([]);
+  const [pdfs, setPdfs]                 = useState([]);
+  const [extRefs, setExtRefs]           = useState([{ label: '', url: '' }]);
+  const [uploading, setUploading]       = useState({ thumbnail: false, image: false, video: false, pdf: false });
+  const [saving, setSaving]             = useState(false);
+  const [publishing, setPublishing]     = useState(false);
+  const [error, setError]               = useState('');
+  const [success, setSuccess]           = useState('');
 
-  const imageInputRef = useRef();
-  const videoInputRef = useRef();
-  const pdfInputRef   = useRef();
+  const thumbnailInputRef = useRef();
+  const imageInputRef     = useRef();
+  const videoInputRef     = useRef();
+  const pdfInputRef       = useRef();
 
   if (!user) {
     return (
@@ -47,6 +49,22 @@ export default function PostStory() {
     formData.append('file', file);
     setUploading(u => ({ ...u, [type]: true }));
     try {
+      const { data } = await axios.post(`/api/upload/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    } catch (err) {
+      throw new Error(err.response?.data?.error || `Failed to upload ${type}`);
+    } finally {
+      setUploading(u => ({ ...u, [type]: false }));
+    }
+  };
+
+  const uploadNonImage = async (file, type) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    setUploading(u => ({ ...u, [type]: true }));
+    try {
       const { data } = await axios.post(`/api/upload/${type}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -56,6 +74,17 @@ export default function PostStory() {
     } finally {
       setUploading(u => ({ ...u, [type]: false }));
     }
+  };
+
+  const handleThumbnail = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setError('');
+    try {
+      const data = await uploadFile(file, 'thumbnail');
+      setThumbnailImage(data);
+    } catch (err) { setError(err.message); }
+    e.target.value = '';
   };
 
   const handleImages = async (e) => {
@@ -77,7 +106,7 @@ export default function PostStory() {
     if (videos.length >= 3) { setError('Max 3 videos per story.'); return; }
     setError('');
     try {
-      const data = await uploadFile(file, 'video');
+      const data = await uploadNonImage(file, 'video');
       setVideos(prev => [...prev, data]);
     } catch (err) { setError(err.message); }
     e.target.value = '';
@@ -89,7 +118,7 @@ export default function PostStory() {
     if (pdfs.length >= 5) { setError('Max 5 PDFs per story.'); return; }
     setError('');
     try {
-      const data = await uploadFile(file, 'pdf');
+      const data = await uploadNonImage(file, 'pdf');
       setPdfs(prev => [...prev, data]);
     } catch (err) { setError(err.message); }
     e.target.value = '';
@@ -107,6 +136,7 @@ export default function PostStory() {
     title: title.trim(),
     body,
     tags: tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 10),
+    thumbnailImage: thumbnailImage || { fileKey: '', displayName: '', url: '', altText: '' },
     images,
     videos,
     pdfs,
@@ -146,6 +176,35 @@ export default function PostStory() {
         {error   && <div className="error-msg">{error}</div>}
         {success && <div className="success-msg">{success}</div>}
 
+        {/* ── Thumbnail / Profile Picture ── */}
+        <div className="post-field">
+          <label>Story Thumbnail / Cover Photo *</label>
+          <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>
+            This image will appear as the card thumbnail when browsing stories.
+          </p>
+          <div className="thumbnail-upload-area">
+            {thumbnailImage ? (
+              <div className="thumbnail-preview">
+                <img src={thumbnailImage.url} alt="Thumbnail preview" />
+                <button
+                  className="remove-btn"
+                  onClick={() => setThumbnailImage(null)}
+                  style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, fontSize: 16,
+                    background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none',
+                    borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >×</button>
+              </div>
+            ) : (
+              <div className="upload-zone" onClick={() => thumbnailInputRef.current.click()}>
+                <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={handleThumbnail} />
+                <div style={{ fontSize: 32 }}>🖼</div>
+                <p>{uploading.thumbnail ? 'Uploading…' : 'Click to upload cover photo'}</p>
+                <p>JPEG, PNG, WebP · Max 10 MB · 1 image</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Title */}
         <div className="post-field">
           <label>Title *</label>
@@ -154,7 +213,7 @@ export default function PostStory() {
           <div className="hint">{title.length}/150</div>
         </div>
 
-        {/* Body — plain textarea (no external rich-text dependency) */}
+        {/* Body */}
         <div className="post-field">
           <label>Your Story *</label>
           <textarea
@@ -164,7 +223,7 @@ export default function PostStory() {
             onChange={e => setBody(e.target.value)}
             style={{ lineHeight: 1.7 }}
           />
-          <div className="hint">You can use basic HTML tags: &lt;b&gt;, &lt;i&gt;, &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;a&gt;</div>
+          <div className="hint">You can use basic HTML tags: &lt;b&gt;, &lt;i&gt;, &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;a href="..."&gt;</div>
         </div>
 
         {/* Tags */}
@@ -174,13 +233,16 @@ export default function PostStory() {
             onChange={e => setTags(e.target.value)} />
         </div>
 
-        {/* ── Photos ── */}
+        {/* ── Story Photos ── */}
         <div className="post-field">
-          <label>Photos</label>
+          <label>Story Photos</label>
+          <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>
+            Photos related to the story content (shown in the story detail page).
+          </p>
           <div className="upload-zone" onClick={() => imageInputRef.current.click()}>
             <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={handleImages} />
-            <div style={{ fontSize: 28 }}>🖼</div>
-            <p>{uploading.image ? 'Uploading…' : 'Click to upload or drag photos here'}</p>
+            <div style={{ fontSize: 28 }}>📷</div>
+            <p>{uploading.image ? 'Uploading…' : 'Click to upload story photos'}</p>
             <p>JPEG, PNG, WebP, GIF · Max 10 MB each · Max 20</p>
           </div>
           {images.length > 0 && (
