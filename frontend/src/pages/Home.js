@@ -5,10 +5,11 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, '').slice(0, 120);
+const getThumb = (s) => s.thumbnailImage?.url || s.images?.[0]?.url || null;
 
 export default function Home() {
   const [stories, setStories] = useState([]);
-  const [stats, setStats]     = useState({ total: 0, writers: 0 });
+  const [stats, setStats]     = useState({ total: 0 });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -20,7 +21,7 @@ export default function Home() {
           axios.get('/api/stories?limit=1'),
         ]);
         setStories(latestRes.data.stories || []);
-        setStats({ total: allRes.data.pagination?.total || 0, writers: 0 });
+        setStats({ total: allRes.data.pagination?.total || 0 });
       } catch (err) {
         console.error(err);
       } finally {
@@ -65,7 +66,7 @@ export default function Home() {
         </p>
       </div>
 
-      {/* ── Your Stories ── */}
+      {/* ── Latest Stories ── */}
       <div className="stories-section">
         <h2>Latest Stories</h2>
 
@@ -78,18 +79,14 @@ export default function Home() {
             {stories.map((s, i) => (
               <div
                 key={s._id}
-                className={`story-card ${i === 2 ? 'featured' : ''}`}
+                className={`story-card ${i === 0 ? 'featured' : ''}`}
                 onClick={() => navigate(`/stories/${s._id}`)}
               >
                 <div className="story-card-img">
-                  {/* Use thumbnailImage first, fall back to first story image */}
-                  {(s.thumbnailImage?.url || s.images?.[0]?.url) ? (
-                    <img
-                      src={s.thumbnailImage?.url || s.images[0].url}
-                      alt={s.title}
-                    />
+                  {getThumb(s) ? (
+                    <img src={getThumb(s)} alt={s.title} />
                   ) : (
-                    <div className="story-card-img-placeholder">Photo</div>
+                    <div className="story-card-img-placeholder">No Photo</div>
                   )}
                 </div>
                 <div className="story-card-content">

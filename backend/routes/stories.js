@@ -48,7 +48,7 @@ router.get('/latest', async (req, res) => {
   try {
     const stories = await Story.find({ status: 'published' })
       .populate('author', 'username avatar')
-      .select('title body tags images publishedAt author viewCount')
+      .select('title body tags images thumbnailImage publishedAt author viewCount')
       .sort({ publishedAt: -1 })
       .limit(4);
     res.json({ stories });
@@ -61,7 +61,7 @@ router.get('/latest', async (req, res) => {
 router.get('/my', protect, async (req, res) => {
   try {
     const stories = await Story.find({ author: req.user._id })
-      .select('title status tags images publishedAt createdAt viewCount')
+      .select('title status tags images thumbnailImage publishedAt createdAt viewCount')
       .sort({ createdAt: -1 });
     res.json({ stories });
   } catch (err) {
@@ -93,7 +93,7 @@ router.get('/:id', async (req, res) => {
 // ── POST /api/stories — create draft (auth required) ──
 router.post('/', protect, async (req, res) => {
   try {
-    const { title, body, tags, images, videos, pdfs, externalRefs } = req.body;
+    const { title, body, tags, thumbnailImage, images, videos, pdfs, externalRefs } = req.body;
 
     if (!title || !body) {
       return res.status(400).json({ error: 'Title and body are required.' });
@@ -106,6 +106,7 @@ router.post('/', protect, async (req, res) => {
       images: images || [],
       videos: videos || [],
       pdfs:   pdfs   || [],
+      thumbnailImage: thumbnailImage || { fileKey: '', displayName: '', url: '', altText: '' },
       externalRefs: externalRefs || [],
       author: req.user._id,
       status: 'draft',

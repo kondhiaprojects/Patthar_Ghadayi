@@ -10,6 +10,8 @@ const readTime  = (html = '') => {
   return `${Math.max(1, Math.round(words / 200))} min read`;
 };
 
+const getThumb = (s) => s.thumbnailImage?.url || s.images?.[0]?.url || null;
+
 export default function Stories() {
   const [stories, setStories]   = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -49,7 +51,6 @@ export default function Stories() {
         <h1 className="page-title">Stories</h1>
         <p className="page-subtitle">Real experiences from our community</p>
 
-        {/* Search */}
         <form className="search-bar" onSubmit={handleSearch}>
           <input
             type="text"
@@ -60,7 +61,6 @@ export default function Stories() {
           <button type="submit">Search</button>
         </form>
 
-        {/* Story list */}
         {loading ? (
           <div className="loading">Loading stories…</div>
         ) : stories.length === 0 ? (
@@ -76,8 +76,8 @@ export default function Stories() {
                 onClick={() => navigate(`/stories/${s._id}`)}
               >
                 <div className="story-list-thumb">
-                  {s.images?.[0]?.url ? (
-                    <img src={s.thumbnailImage?.url || s.images[0].url} alt={s.title} />
+                  {getThumb(s) ? (
+                    <img src={getThumb(s)} alt={s.title} />
                   ) : (
                     <div className="story-list-thumb-placeholder">No image</div>
                   )}
@@ -102,7 +102,6 @@ export default function Stories() {
           </div>
         )}
 
-        {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="pagination">
             <button onClick={() => setPage(p => p - 1)} disabled={page <= 1}>← Previous</button>
