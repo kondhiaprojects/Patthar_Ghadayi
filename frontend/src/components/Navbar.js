@@ -15,24 +15,27 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
+      {/* Left: Logo */}
       <Link to="/" className="navbar-logo">
         <img src="/logo.png" alt="Patthar Ghadayi Majdoor Sangh Logo" className="navbar-logo-img" />
         <span>Patthar Ghadayi Majdoor Sangh</span>
       </Link>
 
-      <div className="navbar-links">
+      {/* Center: Nav links — always show all 3 */}
+      <div className="navbar-links" style={{ flex: 1, justifyContent: 'center' }}>
         <Link to="/about">About</Link>
         <Link to="/stories">Stories</Link>
-        {user && <Link to="/post">Post a Story</Link>}
+        <Link to={user ? '/post' : '/auth'}>Post a Story</Link>
       </div>
 
-      <div>
+      {/* Right: Auth */}
+      <div className="navbar-right">
         {user ? (
           <div className="navbar-user" onClick={() => setOpen(p => !p)}>
             <div className="navbar-user-avatar">
               {user.username?.[0]?.toUpperCase()}
             </div>
-            <span>{user.username}</span>
+            <span className="navbar-username">{user.username}</span>
             {open && (
               <div className="user-dropdown">
                 <Link to="/my-stories" onClick={() => setOpen(false)}>My Stories</Link>
@@ -41,10 +44,7 @@ export default function Navbar() {
             )}
           </div>
         ) : (
-          <div className="navbar-links">
-            <Link to="/auth">Sign In</Link>
-            <Link to="/auth?tab=signup">Register</Link>
-          </div>
+          <Link to="/auth" className="navbar-signin-btn">Sign In</Link>
         )}
       </div>
     </nav>

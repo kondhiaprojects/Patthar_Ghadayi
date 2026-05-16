@@ -656,19 +656,6 @@ input, textarea, select { font-family: inherit; }
 }
 .pdf-download-btn:hover { color: var(--dark-green); }
 
-/* View PDF button — same look as the old <a> link it replaces */
-.pdf-view-btn {
-  font-size: 13px;
-  color: var(--green);
-  text-decoration: underline;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  padding: 0;
-}
-.pdf-view-btn:hover { color: var(--dark-green); }
-
 /* ── EXTERNAL REF LINK ── */
 .ext-ref-link {
   font-size: 14px;
@@ -685,3 +672,127 @@ input, textarea, select { font-family: inherit; }
   text-decoration: underline;
 }
 .story-page-body a:hover { color: var(--green); }
+
+/* ── NAVBAR RIGHT ── */
+.navbar-right { display: flex; align-items: center; min-width: 80px; justify-content: flex-end; }
+.navbar-username { font-size: 14px; }
+.navbar-signin-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  background: var(--dark-green);
+  padding: 7px 18px;
+  border-radius: 6px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.navbar-signin-btn:hover { background: var(--green); }
+
+/* ── COVER THUMBNAIL FIX — constrained, not cropped face ── */
+.story-thumbnail-wrap {
+  width: 100%;
+  max-height: 340px;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+}
+.story-thumbnail {
+  width: 100%;
+  max-height: 340px;
+  object-fit: contain;   /* show full image, no cropping */
+  display: block;
+}
+
+/* ── PHOTO GRID WITH HOVER ── */
+.story-img-thumb {
+  position: relative;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+}
+.story-img-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s;
+}
+.story-img-thumb:hover img { transform: scale(1.04); }
+.story-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.story-img-thumb:hover .story-img-overlay { opacity: 1; }
+
+/* ── LIGHTBOX ── */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-img-wrap {
+  position: relative;
+  max-width: 80vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lightbox-img {
+  max-width: 80vw;
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+.lightbox-counter {
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  margin-top: 10px;
+  text-align: center;
+}
+.lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 28px;
+  font-size: 36px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 1001;
+}
+.lightbox-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 52px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 16px;
+  z-index: 1001;
+  line-height: 1;
+  opacity: 0.8;
+}
+.lightbox-arrow:hover { opacity: 1; }
+.lightbox-prev { left: 12px; }
+.lightbox-next { right: 12px; }

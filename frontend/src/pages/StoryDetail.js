@@ -11,60 +11,65 @@ function linkify(text) {
   );
 }
 
-// ── PDF Helpers ────────────────────────────────────────────────────────────
-//
-// ROOT CAUSE: Cloudinary uploads PDFs as resource_type:'raw', which makes
-// Cloudinary add a Content-Disposition:attachment header on every response.
-// The browser obeys that header and downloads instead of rendering — even
-// when target="_blank" is set on the <a> tag.
-//
-// FIX for View  → route the URL through Google Docs Viewer, which fetches
-//                 the file server-side and renders it regardless of headers.
-// FIX for Download → fetch the bytes, re-type the blob as application/pdf,
-//                    and trigger a named download via a temporary <a> tag.
-
-// Open PDF in Google Docs Viewer (opens in a new tab, no CORS issues)
-function viewPdf(url) {
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`;
-  window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-}
-
-// Force-download the PDF with the correct filename
 async function downloadPdf(url, filename) {
-  const safeFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
   try {
-    const response = await fetch(url, { mode: 'cors' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const response = await fetch(url);
     const blob = await response.blob();
-    // Re-type the blob so the browser saves it as a proper PDF regardless
-    // of whatever Content-Type Cloudinary sent in the response.
     const objectUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
     const link = document.createElement('a');
     link.href = objectUrl;
-    link.download = safeFilename;
+    link.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Delay revoke so the browser has time to start the download
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+    URL.revokeObjectURL(objectUrl);
   } catch {
-    // Fallback: let the browser handle it directly (will likely still download)
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = safeFilename;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(url, '_blank');
   }
+}
+
+// ── Lightbox component ──
+function Lightbox({ images, startIndex, onClose }) {
+  const [current, setCurrent] = useState(startIndex);
+
+  const prev = (e) => { e.stopPropagation(); setCurrent(i => (i - 1 + images.length) % images.length); };
+  const next = (e) => { e.stopPropagation(); setCurrent(i => (i + 1) % images.length); };
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <div className="lightbox-overlay" onClick={onClose}>
+      <button className="lightbox-close" onClick={onClose}>×</button>
+
+      {images.length > 1 && (
+        <button className="lightbox-arrow lightbox-prev" onClick={prev}>‹</button>
+      )}
+
+      <div className="lightbox-img-wrap" onClick={e => e.stopPropagation()}>
+        <img src={images[current].url} alt={images[current].altText || `Photo ${current + 1}`} className="lightbox-img" />
+        {images.length > 1 && (
+          <div className="lightbox-counter">{current + 1} / {images.length}</div>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <button className="lightbox-arrow lightbox-next" onClick={next}>›</button>
+      )}
+    </div>
+  );
 }
 
 export default function StoryDetail() {
   const { id } = useParams();
-  const [story, setStory]     = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [story, setStory]         = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
+  const [lightboxIdx, setLightboxIdx] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,14 +95,23 @@ export default function StoryDetail() {
   return (
     <div>
       <Navbar />
-      <div className="story-page">
 
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <Lightbox
+          images={story.images}
+          startIndex={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+        />
+      )}
+
+      <div className="story-page">
         <button
           onClick={() => navigate(-1)}
           style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:13, marginBottom:20 }}
         >← Back</button>
 
-        {/* Cover / Thumbnail */}
+        {/* Cover thumbnail — constrained height, proper fit */}
         {story.thumbnailImage?.url && (
           <div className="story-thumbnail-wrap">
             <img src={story.thumbnailImage.url} alt={story.title} className="story-thumbnail" />
@@ -113,23 +127,29 @@ export default function StoryDetail() {
         </div>
         <hr className="story-page-divider" />
 
-        {/* Body */}
         <div className="story-page-body" dangerouslySetInnerHTML={{ __html: processedBody }} />
 
-        {/* Tags */}
         {story.tags?.length > 0 && (
           <div className="story-tags">
             {story.tags.map(t => <span key={t} className="story-tag">#{t}</span>)}
           </div>
         )}
 
-        {/* Story Photos */}
+        {/* Story Photos — clickable grid with lightbox */}
         {story.images?.length > 0 && (
           <div className="story-media-section">
             <h3>Photos</h3>
             <div className="story-images-grid">
               {story.images.map((img, i) => (
-                <img key={i} src={img.url} alt={img.altText || story.title} />
+                <div
+                  key={i}
+                  className="story-img-thumb"
+                  onClick={() => setLightboxIdx(i)}
+                  title="Click to enlarge"
+                >
+                  <img src={img.url} alt={img.altText || story.title} />
+                  <div className="story-img-overlay">🔍</div>
+                </div>
               ))}
             </div>
           </div>
@@ -151,7 +171,7 @@ export default function StoryDetail() {
           </div>
         )}
 
-        {/* PDFs — View opens Google Docs Viewer in new tab; Download forces .pdf save */}
+        {/* PDFs */}
         {story.pdfs?.length > 0 && (
           <div className="story-media-section">
             <h3>Attachments</h3>
@@ -160,17 +180,10 @@ export default function StoryDetail() {
                 <span className="pdf-item-icon">📄</span>
                 <span className="pdf-item-name">{pdf.displayName}</span>
                 <div className="pdf-item-links">
-                  {/* viewPdf() routes through Google Docs Viewer so the
-                      Cloudinary Content-Disposition:attachment header is
-                      bypassed and the PDF renders in-browser */}
-                  <button
-                    className="pdf-view-btn"
-                    onClick={() => viewPdf(pdf.url)}
-                  >View PDF</button>
-                  <button
-                    className="pdf-download-btn"
-                    onClick={() => downloadPdf(pdf.url, pdf.displayName)}
-                  >Download .pdf</button>
+                  <a href={pdf.url} target="_blank" rel="noopener noreferrer">View PDF</a>
+                  <button className="pdf-download-btn" onClick={() => downloadPdf(pdf.url, pdf.displayName)}>
+                    Download .pdf
+                  </button>
                 </div>
               </div>
             ))}
