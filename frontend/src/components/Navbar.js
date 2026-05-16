@@ -18,7 +18,7 @@ export default function Navbar() {
       {/* Left: Logo */}
       <Link to="/" className="navbar-logo">
         <img src="/logo.png" alt="Patthar Ghadayi Majdoor Sangh Logo" className="navbar-logo-img" />
-        <span>Patthar Ghadayi Majdoor Sangh</span>
+        <span style={{ whiteSpace: 'nowrap' }}>Patthar Ghadayi Majdoor Sangh</span>
       </Link>
 
       {/* Center: Nav links — always show all 3 */}
