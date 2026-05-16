@@ -6,6 +6,7 @@ import Auth        from './pages/Auth';
 import Stories     from './pages/Stories';
 import StoryDetail from './pages/StoryDetail';
 import PostStory   from './pages/PostStory';
+import EditStory   from './pages/EditStory';
 import MyStories   from './pages/MyStories';
 import './index.css';
 
@@ -19,8 +20,8 @@ export default function App() {
           <Route path="/stories"     element={<Stories />} />
           <Route path="/stories/:id" element={<StoryDetail />} />
           <Route path="/post"        element={<PostStory />} />
+          <Route path="/edit/:id"    element={<EditStory />} />
           <Route path="/my-stories"  element={<MyStories />} />
-          {/* Redirect /about to home for now */}
           <Route path="/about"       element={<Home />} />
           <Route path="*"            element={<Home />} />
         </Routes>

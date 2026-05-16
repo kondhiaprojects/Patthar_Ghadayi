@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
+const getThumb = (s) => s.thumbnailImage?.url || s.images?.[0]?.url || null;
+
 export default function MyStories() {
   const { user } = useAuth();
   const navigate  = useNavigate();
@@ -31,17 +33,6 @@ export default function MyStories() {
     }
   };
 
-  const handleUnpublish = async (id) => {
-    // Patch status back to draft
-    try {
-      await axios.patch(`/api/stories/${id}`, { status: 'draft' });
-      setStories(prev => prev.map(s => s._id === id ? { ...s, status: 'draft', publishedAt: null } : s));
-      setMsg('Story moved back to drafts.');
-    } catch (err) {
-      setMsg(err.response?.data?.error || 'Failed.');
-    }
-  };
-
   return (
     <div>
       <Navbar />
@@ -63,8 +54,8 @@ export default function MyStories() {
             {stories.map(s => (
               <div key={s._id} className="story-list-item" style={{ cursor: 'default' }}>
                 <div className="story-list-thumb">
-                  {s.images?.[0]?.url ? (
-                    <img src={s.images[0].url} alt={s.title} />
+                  {getThumb(s) ? (
+                    <img src={getThumb(s)} alt={s.title} />
                   ) : (
                     <div className="story-list-thumb-placeholder">No image</div>
                   )}
@@ -72,13 +63,11 @@ export default function MyStories() {
                 <div className="story-list-info">
                   <div className="story-list-title">{s.title}</div>
                   <div className="story-list-meta">
-                    <span
-                      style={{
-                        background: s.status === 'published' ? '#f0fdf4' : '#fef9c3',
-                        color: s.status === 'published' ? '#16a34a' : '#92400e',
-                        padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600
-                      }}
-                    >
+                    <span style={{
+                      background: s.status === 'published' ? '#f0fdf4' : '#fef9c3',
+                      color: s.status === 'published' ? '#16a34a' : '#92400e',
+                      padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600
+                    }}>
                       {s.status === 'published' ? '● Published' : '○ Draft'}
                     </span>
                     {s.publishedAt && <span>{new Date(s.publishedAt).toLocaleDateString('en-IN')}</span>}
@@ -91,12 +80,10 @@ export default function MyStories() {
                         onClick={() => navigate(`/stories/${s._id}`)}
                       >View</button>
                     )}
-                    {s.status === 'published' && (
-                      <button
-                        style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#6b7280', textDecoration:'underline' }}
-                        onClick={() => handleUnpublish(s._id)}
-                      >Unpublish</button>
-                    )}
+                    <button
+                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#2563eb', textDecoration:'underline' }}
+                      onClick={() => navigate(`/edit/${s._id}`)}
+                    >Edit</button>
                     <button
                       style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#dc2626', textDecoration:'underline' }}
                       onClick={() => handleDelete(s._id)}
