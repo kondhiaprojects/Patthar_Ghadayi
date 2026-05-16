@@ -16,20 +16,22 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       {/* Left: Logo */}
-      <Link to="/" className="navbar-logo">
-        <img src="/logo.png" alt="Patthar Ghadayi Majdoor Sangh Logo" className="navbar-logo-img" />
-        <span>Patthar Ghadayi Majdoor Sangh</span>
-      </Link>
+      <div style={{ flex: 1 }}>
+        <Link to="/" className="navbar-logo">
+          <img src="/logo.png" alt="Patthar Ghadayi Majdoor Sangh Logo" className="navbar-logo-img" />
+          <span style={{ whiteSpace: 'nowrap' }}>Patthar Ghadayi Majdoor Sangh</span>
+        </Link>
+      </div>
 
-      {/* Center: Nav links — always show all 3 */}
-      <div className="navbar-links" style={{ flex: 1, justifyContent: 'center' }}>
+      {/* Center: Nav links */}
+      <div className="navbar-links">
         <Link to="/about">About</Link>
         <Link to="/stories">Stories</Link>
         <Link to={user ? '/post' : '/auth'}>Post a Story</Link>
       </div>
 
       {/* Right: Auth */}
-      <div className="navbar-right">
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
         {user ? (
           <div className="navbar-user" onClick={() => setOpen(p => !p)}>
             <div className="navbar-user-avatar">
@@ -39,6 +41,9 @@ export default function Navbar() {
             {open && (
               <div className="user-dropdown">
                 <Link to="/my-stories" onClick={() => setOpen(false)}>My Stories</Link>
+                {user.role === 'admin' && (
+                  <Link to="/admin" onClick={() => setOpen(false)}>🔑 Admin Panel</Link>
+                )}
                 <button onClick={handleLogout}>Sign Out</button>
               </div>
             )}

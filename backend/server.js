@@ -9,6 +9,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const storyRoutes = require('./routes/stories');
 const uploadRoutes = require('./routes/upload');
+const adminRoutes  = require('./routes/admin');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 app.use('/api/auth', authRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin',  adminRoutes);
 
 // ── Health check ──
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
