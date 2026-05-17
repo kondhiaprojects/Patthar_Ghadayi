@@ -161,4 +161,28 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// ── GET /api/stories/user/:userId — public stories by a user ──
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = 9;
+    const skip  = (page - 1) * limit;
+
+    const [stories, total, author] = await Promise.all([
+      Story.find({ author: req.params.userId, status: 'published' })
+        .populate('author', 'username bio avatar')
+        .select('title body images thumbnailImage publishedAt viewCount author')
+        .sort({ publishedAt: -1 })
+        .skip(skip).limit(limit),
+      Story.countDocuments({ author: req.params.userId, status: 'published' }),
+      require('../models/User').findById(req.params.userId).select('username bio avatar createdAt'),
+    ]);
+
+    if (!author) return res.status(404).json({ error: 'User not found.' });
+    res.json({ author, stories, pagination: { page, total, pages: Math.ceil(total / limit) } });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user profile.' });
+  }
+});
+
 module.exports = router;

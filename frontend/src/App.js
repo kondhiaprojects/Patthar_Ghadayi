@@ -9,6 +9,7 @@ import PostStory   from './pages/PostStory';
 import EditStory   from './pages/EditStory';
 import MyStories   from './pages/MyStories';
 import Admin       from './pages/Admin';
+import UserProfile from './pages/UserProfile';
 import './index.css';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/edit/:id"    element={<EditStory />} />
           <Route path="/my-stories"  element={<MyStories />} />
           <Route path="/admin"       element={<Admin />} />
+          <Route path="/user/:userId" element={<UserProfile />} />
           <Route path="/about"       element={<Home />} />
           <Route path="*"            element={<Home />} />
         </Routes>

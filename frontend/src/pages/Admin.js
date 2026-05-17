@@ -205,7 +205,7 @@ export default function Admin() {
                                 {s.title}
                               </a>
                             </td>
-                            <td>{s.author?.username}</td>
+                            <td><span style={{cursor:"pointer",color:"var(--green)",textDecoration:"underline"}} onClick={() => window.open(`/user/${s.author?._id}`,"_blank")}>{s.author?.username}</span></td>
                             <td>{s.viewCount}</td>
                             <td>{s.publishedAt ? new Date(s.publishedAt).toLocaleDateString('en-IN') : '—'}</td>
                           </tr>

@@ -30,16 +30,22 @@ export default function Navbar() {
         <Link to={user ? '/post' : '/auth'}>Post a Story</Link>
       </div>
 
-      {/* Right: Auth */}
+      {/* Right: show account if logged in, nothing if not */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-        {user ? (
+        {user && (
           <div className="navbar-user" onClick={() => setOpen(p => !p)}>
-            <div className="navbar-user-avatar">
+            <div
+              className="navbar-user-avatar"
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/user/${user.id || user._id}`); }}
+              title="View your profile"
+            >
               {user.username?.[0]?.toUpperCase()}
             </div>
             <span className="navbar-username">{user.username}</span>
             {open && (
               <div className="user-dropdown">
+                <Link to={`/user/${user.id || user._id}`} onClick={() => setOpen(false)}>My Profile</Link>
                 <Link to="/my-stories" onClick={() => setOpen(false)}>My Stories</Link>
                 {user.role === 'admin' && (
                   <Link to="/admin" onClick={() => setOpen(false)}>🔑 Admin Panel</Link>
@@ -48,8 +54,6 @@ export default function Navbar() {
               </div>
             )}
           </div>
-        ) : (
-          <Link to="/auth" className="navbar-signin-btn">Sign In</Link>
         )}
       </div>
     </nav>

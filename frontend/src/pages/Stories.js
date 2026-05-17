@@ -9,7 +9,6 @@ const readTime  = (html = '') => {
   const words = html.replace(/<[^>]*>/g, '').split(/\s+/).length;
   return `${Math.max(1, Math.round(words / 200))} min read`;
 };
-
 const getThumb = (s) => s.thumbnailImage?.url || s.images?.[0]?.url || null;
 
 export default function Stories() {
@@ -70,11 +69,7 @@ export default function Stories() {
         ) : (
           <div className="stories-list">
             {stories.map(s => (
-              <div
-                key={s._id}
-                className="story-list-item"
-                onClick={() => navigate(`/stories/${s._id}`)}
-              >
+              <div key={s._id} className="story-list-item" onClick={() => navigate(`/stories/${s._id}`)}>
                 <div className="story-list-thumb">
                   {getThumb(s) ? (
                     <img src={getThumb(s)} alt={s.title} />
@@ -86,16 +81,17 @@ export default function Stories() {
                   <div className="story-list-title">{s.title}</div>
                   <div className="story-list-excerpt">{stripHtml(s.body)}</div>
                   <div className="story-list-meta">
-                    <span>By {s.author?.username || 'Unknown'}</span>
+                    {/* Clickable author name */}
+                    <span
+                      className="author-link"
+                      onClick={e => { e.stopPropagation(); navigate(`/user/${s.author?._id}`); }}
+                    >
+                      By {s.author?.username || 'Unknown'}
+                    </span>
                     <span>{s.publishedAt ? new Date(s.publishedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : ''}</span>
                     <span>{readTime(s.body)}</span>
                     <span>👁 {s.viewCount || 0}</span>
                   </div>
-                  {s.tags?.length > 0 && (
-                    <div className="tags-row" style={{ marginTop: 8, marginBottom: 0 }}>
-                      {s.tags.map(t => <span key={t} className="tag-pill">{t}</span>)}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
